@@ -231,8 +231,30 @@ jobs:
       - name: Clippy
         run: cargo clippy --locked --all-targets -- -D warnings
 
+      # Scoped to this workspace's own packages, NOT `cargo fmt --all`.
+      #
+      # The workspace path-depends on the pinned kotva sibling fetched above,
+      # and `--all` walks into it — so this step was failing on the formatting
+      # of another repository, at a commit this repo pins and does not control.
+      # rustfmt moved with the stable toolchain and the pinned kotva tree
+      # predates that move; the code here was clean the whole time.
+      #
+      # `cargo metadata --no-deps` lists exactly the workspace members (15 of
+      # them, no kotva). The count is asserted so that a metadata call that
+      # returned nothing would fail loudly rather than format zero packages and
+      # report success.
       - name: Rustfmt
-        run: cargo fmt --all --check
+        run: |
+          set -euo pipefail
+          mapfile -t PKGS < <(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
+          if [ "${#PKGS[@]}" -lt 10 ]; then
+            echo "::error::cargo metadata listed ${#PKGS[@]} workspace packages; expected the full workspace"
+            exit 1
+          fi
+          ARGS=()
+          for p in "${PKGS[@]}"; do ARGS+=(-p "$p"); done
+          echo "rustfmt over ${#PKGS[@]} workspace packages"
+          cargo fmt --check "${ARGS[@]}"
 
   # The operator console had NO CI job at all. `check-brand-isolation.sh` and its
   # mutation suite were reachable only as `pnpm check:brand` / `check:brand:mutate`,
