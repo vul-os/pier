@@ -150,6 +150,9 @@ p, .prose { font-family: var(--font-sans); }
 .nav-links { display: flex; align-items: center; gap: 18px; font-size: 13px; color: var(--text-muted); }
 .nav-links a { min-height: 44px; display: inline-flex; align-items: center; }
 .nav-links a:hover { color: var(--text-primary); }
+/* GitHub is carried by the mark alone — same colour and hit target as the
+   lettered links, sized to sit level with the theme toggle's 16px icons. */
+.nav-links a.gh svg { display: block; }
 .btn {
   border: 1px solid var(--border-strong); padding: 9px 14px; font-size: 12px; letter-spacing: .06em;
   text-transform: uppercase; color: var(--text-primary); transition: .15s; white-space: nowrap;
